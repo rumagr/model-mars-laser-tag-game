@@ -1,7 +1,10 @@
 using System.Linq;
+using LaserTagBox.Model.Shared;
 using Mars.Common.Core.Random;
 using Mars.Interfaces.Environments;
 using Mars.Numerics;
+using ServiceStack;
+
 namespace LaserTagBox.Model.Mind;
 
 public class RuleBasedPlayerMind : AbstractPlayerMind
@@ -17,32 +20,64 @@ public class RuleBasedPlayerMind : AbstractPlayerMind
 
     public override void Tick()
     {
+        if (Body.RemainingShots == 0)
+        {
+            Body.Reload3(); // Reload if no shots left
+        }
         
-        if (Body.ActionPoints < 10)
-        {
-            return;  //TODO execution order fix
-        }
         var enemies = Body.ExploreEnemies1();
-        if (enemies.Any())
+        if (enemies != null && enemies.Count > 0)
         {
-            _goal = enemies.First().Position.Copy();
-            if (Body.RemainingShots == 0) Body.Reload3();
-            Body.Tag5(enemies.First().Position);
-        }
+            Stance newStance = Stance.Standing;
             
-        if (_goal == null || Body.GetDistance(_goal) == 1)
-        {
-            var newX = RandomHelper.Random.Next(_mindLayer.Width);
-            var newY = RandomHelper.Random.Next(_mindLayer.Height);
-            _goal = Position.CreatePosition(newX, newY);
-        }
+            if (Body.GetDistance(enemies.FirstOrDefault().Position) > 8)
+            {
+                newStance = Stance.Standing;    
+            }
+            else if (Body.GetDistance(enemies.FirstOrDefault().Position) <= 8 && Body.GetDistance(enemies.FirstOrDefault().Position) > 5)
+            {
+                newStance = Stance.Kneeling; 
+            }
+            else if (Body.GetDistance(enemies.FirstOrDefault().Position) <= 5)
+            {
+                newStance = Stance.Lying;
+            }
 
-        var moved = Body.GoTo(_goal);
-        if (!moved) _goal = null;
-     
+            if (newStance != Body.Stance)
+            {
+                Body.ChangeStance2(newStance);
+            }
+
+            var explosiveBarrelPositions = Body.ExploreExplosiveBarrels1();
+
+            var shotFired = false; 
+            
+            for (int i = 0; i < explosiveBarrelPositions.Count; i++)
+            {
+                if (Body.GetDistance(explosiveBarrelPositions[i]) > 3 && Distance.Euclidean(explosiveBarrelPositions[i].X,explosiveBarrelPositions[i].Y, enemies.FirstOrDefault().Position.X,enemies.FirstOrDefault().Position.Y) <= 3)
+                {
+                    Body.Tag5(explosiveBarrelPositions[i]);
+                    shotFired = true;
+                    break; 
+                }
+            }
+            
+            if (!shotFired)
+            {
+                Body.Tag5(enemies.FirstOrDefault().Position); // Tag the first enemy
+            }
+
+            if (Body.RemainingShots <= 3)
+            {
+                Body.Reload3(); // Reload if shots are low
+            }
+            
+            flagColletion(); // Move towards the flag
+        }
+        
     }
 
-    private void goToFlag()
+    private void flagColletion()
     {
         _enemyFlagStand ??= Body.ExploreEnemyFlagStands1()[0];
         if (Body.ActionPoints > 2 && !Body.CarryingFlag)
