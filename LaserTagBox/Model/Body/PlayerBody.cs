@@ -450,11 +450,20 @@ public class PlayerBody : MovingAgent, IPlayerBody
     /// </summary>
     private void Respawn()
     {
-        var flagStand = Battleground.SpotEnv.Entities.Where(e => 
-            e.GetType() == typeof(FlagStand)).FirstOrDefault(e => ((FlagStand)e).Color == Color);
+        Position flagStand = null;
+
+        if (Color == Color.Yellow)
+        {
+            flagStand = Position.CreatePosition(25, 49);
+        }
+        else
+        {
+            flagStand = Position.CreatePosition(25, 1);
+        }
+        
         if (flagStand != null)
         {
-            Position = Position.CreatePosition(flagStand.Position.X, flagStand.Position.Y);
+            Position = Position.CreatePosition(flagStand.X, flagStand.Y);
             Alive = true;
             ActionPoints = 10;
             Energy = 100;
