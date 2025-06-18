@@ -29,7 +29,7 @@ internal static class Program
 
         // USER: Add agents here
         description.AddAgent<FlagCollector, PlayerMindLayer>();
-        description.AddAgent<SecondFlagCollector, PlayerMindLayer>();
+        description.AddAgent<RuleBasedPlayerMind, PlayerMindLayer>();
 
         // USER: Specify JSON configuration file here
         var file = File.ReadAllText("config.json");
