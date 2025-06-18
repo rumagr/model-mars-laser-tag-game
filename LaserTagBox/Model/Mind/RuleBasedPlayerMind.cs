@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Timers;
 using LaserTagBox.Model.Shared;
 using Mars.Interfaces.Environments;
 using Mars.Numerics;
@@ -27,6 +28,11 @@ public class RuleBasedPlayerMind : AbstractPlayerMind
         
         // Positionen der Gegner exploren
         var enemies = Body.ExploreEnemies1();
+        if ((enemies == null || enemies.Count == 0) && !Body.Stance.Equals(Stance.Standing))
+        {
+            Body.ChangeStance2(Stance.Standing);
+        }
+        
         if (enemies != null && enemies.Count > 0)
         {
             Stance newStance = Stance.Standing;
@@ -60,7 +66,7 @@ public class RuleBasedPlayerMind : AbstractPlayerMind
             var shotFired = false;
             if (explosiveBarrelPositions != null && explosiveBarrelPositions.Count > 0)
             {
-                // Für jedes Fass prüfen, ob es mehr als 3 Felder von einem selbst entfernt ist, aber weniger als 3 vom Gegner, wenn ja schieß drauf
+                // Für jedes Fass prüfen, ob es mehr als 3 Felder von einem selbst entfernt ist, aber weniger als 3 vom Gegner. Wenn ja, schieß darauf.
                 for (int i = 0; i < explosiveBarrelPositions.Count; i++)
                 {
                     if (Body.GetDistance(explosiveBarrelPositions[i]) > 3 && Distance.Euclidean(
@@ -88,6 +94,7 @@ public class RuleBasedPlayerMind : AbstractPlayerMind
             
             
         }
+
         FlagCollection(); // Richtung Flagge bewegen, mitnehmen und in Base bringen
     }
 
