@@ -1,8 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using LaserTagBox.Model.Shared;
-using Mars.Interfaces.Environments;
-using Mars.Numerics;
 using System.IO;
 using System.Text.Json;
 
@@ -20,11 +15,17 @@ public class QLearningPlayerMind : AbstractPlayerMind
 
     private static double explorationRate = 0.2;
     
-    
-    
     //Q-Table to store state-action values
     //tragt Flagge, Gegner in der Nähe, teammate in der Nähe, eigene Flagge in der Nähe, ExplosiveBarrel in der Nähe, Stance
     private double[][][][][][] QTable = new double[2][][][][][]; 
+    
+    public static int _teamScore = 0;
+    private int _prevTeamScore = 0;
+    
+    private int _prevGamePoints = 0;
+    
+    private bool hadFlagLastTick = false; //todo: aktualisieren bei aufheben/sterben
+    private bool wasAliveLastTick = true;
     
     public override void Init(PlayerMindLayer mindLayer)
     {
@@ -58,7 +59,6 @@ public class QLearningPlayerMind : AbstractPlayerMind
     public override void Tick()
     {
         
-        
         //TODO implement Q-Learning logic
         //1. Get current state
         //2. Choose action (exploration vs exploitation)
@@ -73,7 +73,58 @@ public class QLearningPlayerMind : AbstractPlayerMind
     private int calculateReward()
     {
         int reward = 0;
-        //TODO implement reward calculation
+        // Reward for assist
+        if () // wenn gegner getaggt wurde (gamescore +10), nicht am äußersten rand der visual range war und verschwindet
+        {
+            reward += rewardAssist;
+        }
+        
+        // 10 gamepoints fürs taggen, 20 für einen kill, -10 wenn tot
+        // Alles unter 20 Game Points ist ein Tag, kein kill
+        if(Body.GamePoints > _prevGamePoints && Body.GamePoints < _prevGamePoints + 20)
+        {
+            _prevGamePoints = Body.GamePoints;
+        }
+        // Reward für Kill
+        if (Body.GamePoints >= _prevGamePoints + 20)
+        {
+            reward += rewardEnemyKilled;
+            _prevGamePoints = Body.GamePoints;
+        }
+        
+        // Reward fürs scoren
+        if (hadFlagLastTick && !Body.CarryingFlag && Body.Alive && wasAliveLastTick)
+        {
+            _teamScore++;
+            hadFlagLastTick = false;
+        }
+
+        if (_teamScore > _prevTeamScore)
+        {
+            reward += rewardScored;
+            _prevTeamScore = _teamScore;
+        }
+        
+        // Penalty für Tod
+        if (wasAliveLastTick && Body.Alive == false)
+        {
+            reward += penaltyDied;
+            wasAliveLastTick = false; //muss bei respawn wieder auf true gesetzt werden
+            _prevGamePoints = Body.GamePoints; // weil man -10 kriegt wenn man stirbt
+        }
+        
+        // Penalty für Enemy Scored
+        if () // Ersan meinte man kann die teamscores abfragen irgendwo in battlegrounds
+        {
+            reward += penaltyEnemyScored;
+        }
+        
+        // Penalty für Teammate getötet
+        if () // Teammate in visual range, spieler taggt, kriegt keinen score und teammate verschiwndet obwohl er nicht am rand der visual range war
+        {
+            reward += penaltyTeammateKilled;
+        }
+        
         return reward; 
     }
     
