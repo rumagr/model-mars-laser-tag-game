@@ -94,6 +94,18 @@ public class QLearningPlayerMind : AbstractPlayerMind
         }
     }
     
+    // Rewards
+
+    private static int rewardAssist = 50;
+    private static int rewardScored = 100;
+    private static int rewardEnemyKilled = 50;
+    
+    // Penalties
+
+    private static int penaltyDied = -10;
+    private static int penaltyEnemyScored = -110;
+    private static int penaltyTeammateKilled = -50;
+    
     // Actions
     //private static int exploreBarriers;
     //private static int exploreDitches;
