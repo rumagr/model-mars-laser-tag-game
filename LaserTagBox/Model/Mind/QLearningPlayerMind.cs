@@ -20,15 +20,37 @@ public class QLearningPlayerMind : AbstractPlayerMind
 
     private static double explorationRate = 0.2;
     
+    
+    
     //Q-Table to store state-action values
-    //TODO define the dimensions of the QTable based on the environment and actions
+    //tragt Flagge, Gegner in der Nähe, teammate in der Nähe, eigene Flagge in der Nähe
     private double[][][][][] QTable = new double[2][][][][]; 
     
     public override void Init(PlayerMindLayer mindLayer)
     {
         _mindLayer = mindLayer;
         
-        //TODO initialize QTable 
+        if (!LoadQTable("../../../Model/QTable.json"))
+        {
+            for (int i = 0; i < 2; i++)
+            {
+                QTable[i] = new double[2][][][];
+                for (int j = 0; j < 5; j++)
+                {
+                    QTable[i][j] = new double[2][][];
+                    
+                    for (int k = 0; k < 5; k++)
+                    {
+                        QTable[i][j][k] = new double[2][];
+                        for (int l = 0; l < 5; l++)
+                        {
+                            QTable[i][j][k][l] = new double[40]; //TODO initialize QTable with number of actions
+
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public override void Tick()
