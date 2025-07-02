@@ -132,7 +132,11 @@ public class QLearningPlayerMind : AbstractPlayerMind
     private static int layDown;
 
     private static int goUp;
+    private static int goUpRight;
+    private static int goUpLeft;
     private static int goDown;
+    private static int goDownRight;
+    private static int goDownLeft;
     private static int goLeft;
     private static int goRight;
 }
