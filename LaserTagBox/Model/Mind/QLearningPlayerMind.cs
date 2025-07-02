@@ -66,46 +66,55 @@ public class QLearningPlayerMind : AbstractPlayerMind
     public override void Tick()
     {
         
-        
-        //TODO implement Q-Learning logic
-        //1. Get current state
-        var hasFlag = Body.CarryingFlag; 
-        var enemies = Body.ExploreEnemies1();
-        var teammates = Body.ExploreTeam();
-        var ownFlagInSight = Body.ExploreFlags2().FirstOrDefault(f => f.Team == Body.Color && f.PickedUp == false).PickedUp;
-        var explosiveBarrels = Body.ExploreExplosiveBarrels1();
-        var stance = Body.Stance;
-        var actionPoints = Body.ActionPoints;
-        //2. Choose action (exploration vs exploitation)
-        var actions = QTable[hasFlag ? 1 : 0][enemies.Count > 0 ? 1 : 0][teammates.Count > 0 ? 1 : 0][ownFlagInSight ? 1 : 0][explosiveBarrels.Count > 0 ? 1 : 0][(int)stance][actionPoints].ToList();        //3. calculate reward
-        
-        int action = getAction(actions);
-        
-        if (_random.NextDouble() < explorationRate)
-        {
-            action = _random.Next(0, actions.Count); 
-        }
+        var qValue = 0.0;  
+        var reward = 0;
+        var action = 0;
+        bool firstRound = true; 
         
         //perform Action;
-        while (Body.ActionPoints > 0 && action >= 0 && action < actions.Count)
+        while (Body.ActionPoints > 0)
         {
+            //TODO implement Q-Learning logic
+            //1. Get current state
+            var hasFlag = Body.CarryingFlag; 
+            var enemies = Body.ExploreEnemies1();
+            var teammates = Body.ExploreTeam();
+            var ownFlagInSight = Body.ExploreFlags2().FirstOrDefault(f => f.Team == Body.Color && f.PickedUp == false).PickedUp;
+            var explosiveBarrels = Body.ExploreExplosiveBarrels1();
+            var stance = Body.Stance;
+            var actionPoints = Body.ActionPoints;
+            //2. Choose action (exploration vs exploitation)
+            var actions = QTable[hasFlag ? 1 : 0][enemies.Count > 0 ? 1 : 0][teammates.Count > 0 ? 1 : 0][ownFlagInSight ? 1 : 0][explosiveBarrels.Count > 0 ? 1 : 0][(int)stance][actionPoints].ToList();        //3. calculate reward
+            
+            if (!firstRound)
+            {
+                qValue = qValue + learningRate * (reward + discountFactor * actions.Max() - qValue);
+            
+                if (qValue < 100000 && qValue > -100000)
+                {
+                    QTable[hasFlag ? 1 : 0][enemies.Count > 0 ? 1 : 0][teammates.Count > 0 ? 1 : 0][ownFlagInSight ? 1 : 0]
+                        [explosiveBarrels.Count > 0 ? 1 : 0][(int)stance][actionPoints][action] = qValue; 
+                }
+            }
+            
+            firstRound = false; 
+            
+            action = getAction(actions);
+        
+            if (_random.NextDouble() < explorationRate)
+            {
+                action = _random.Next(0, actions.Count); 
+            }
+            
             performAction(action);
             
             //3. calculate reward
         
-            int reward = calculateReward();
+            reward = calculateReward();
         
             //TODO 4. Update Q-Table 
-            var qValue = QTable[hasFlag ? 1 : 0][enemies.Count > 0 ? 1 : 0][teammates.Count > 0 ? 1 : 0][ownFlagInSight ? 1 : 0][explosiveBarrels.Count > 0 ? 1 : 0][(int)stance][actionPoints][action];
-        
-            if (qValue < 100000 && qValue > -100000)
-            {
-                QTable[hasFlag ? 1 : 0][enemies.Count > 0 ? 1 : 0][teammates.Count > 0 ? 1 : 0][ownFlagInSight ? 1 : 0]
-                    [explosiveBarrels.Count > 0 ? 1 : 0][(int)stance][actionPoints][action] = qValue; 
-            }
+            qValue = QTable[hasFlag ? 1 : 0][enemies.Count > 0 ? 1 : 0][teammates.Count > 0 ? 1 : 0][ownFlagInSight ? 1 : 0][explosiveBarrels.Count > 0 ? 1 : 0][(int)stance][actionPoints][action];
             
-            actions.Remove(action);
-            getAction(actions); 
         }
         
         //5. save Q-Table
