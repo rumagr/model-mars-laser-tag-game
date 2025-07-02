@@ -23,8 +23,8 @@ public class QLearningPlayerMind : AbstractPlayerMind
     
     
     //Q-Table to store state-action values
-    //tragt Flagge, Gegner in der Nähe, teammate in der Nähe, eigene Flagge in der Nähe
-    private double[][][][][] QTable = new double[2][][][][]; 
+    //tragt Flagge, Gegner in der Nähe, teammate in der Nähe, eigene Flagge in der Nähe, ExplosiveBarrel in der Nähe, Stance
+    private double[][][][][][] QTable = new double[2][][][][][]; 
     
     public override void Init(PlayerMindLayer mindLayer)
     {
@@ -32,20 +32,22 @@ public class QLearningPlayerMind : AbstractPlayerMind
         
         if (!LoadQTable("../../../Model/QTable.json"))
         {
-            for (int i = 0; i < 2; i++)
+            for(int m = 0; m < 2; m++)
             {
-                QTable[i] = new double[2][][][];
-                for (int j = 0; j < 5; j++)
+                QTable[m] = new double[2][][][][];
+                for(int f = 0; f < 2; f++)
                 {
-                    QTable[i][j] = new double[2][][];
-                    
-                    for (int k = 0; k < 5; k++)
+                    QTable[m][f] = new double[2][][][];
+                    for(int e = 0; e < 2; e++)
                     {
-                        QTable[i][j][k] = new double[2][];
-                        for (int l = 0; l < 5; l++)
+                        QTable[m][f][e] = new double[2][][];
+                        for(int t = 0; t < 2; t++)
                         {
-                            QTable[i][j][k][l] = new double[40]; //TODO initialize QTable with number of actions
-
+                            QTable[m][f][e][t] = new double[3][]; // Stance: Standing, Kneeling, Lying
+                            for(int s = 0; s < 3; s++)
+                            {
+                                QTable[m][f][e][t][s] = new double[15]; 
+                            }
                         }
                     }
                 }
@@ -85,7 +87,7 @@ public class QLearningPlayerMind : AbstractPlayerMind
     {
         if (File.Exists(filePath))
         {
-            QTable = JsonSerializer.Deserialize<double[][][][][]>(File.ReadAllText(filePath));
+            QTable = JsonSerializer.Deserialize<double[][][][][][]>(File.ReadAllText(filePath));
             return true;
         }
         else
