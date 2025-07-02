@@ -93,4 +93,32 @@ public class QLearningPlayerMind : AbstractPlayerMind
             return false; 
         }
     }
+    
+    // Actions
+    //private static int exploreBarriers;
+    //private static int exploreDitches;
+    //private static int exploreHills;
+    private static int exploreEnemies;
+    private static int exploreTeam;
+    //private static int exploreWater;
+    //private static int exploreBarrels;
+    private static int exploreExplosiveBarrels;
+    //private static int exploreEnemyFlagStands;
+    //private static int exploreOwnFlagStand;
+    private static int exploreFlags;
+    //private static int hasBeeline;
+    private static int getDistance;
+
+    private static int shootEnemy;
+    private static int shootExplosiveBarrell;
+    private static int reload;
+    
+    private static int standUp;
+    private static int kneel;
+    private static int layDown;
+
+    private static int goUp;
+    private static int goDown;
+    private static int goLeft;
+    private static int goRight;
 }
