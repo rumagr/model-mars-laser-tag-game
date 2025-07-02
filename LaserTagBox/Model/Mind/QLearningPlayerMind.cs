@@ -86,12 +86,99 @@ public class QLearningPlayerMind : AbstractPlayerMind
             action = _random.Next(0, actions.Count); 
         }
         
-        //3. calculate reward
+        //perform Action;
+        while (Body.ActionPoints > 0 && action >= 0 && action < actions.Count)
+        {
+            performAction(action);
+            
+            //3. calculate reward
         
-        int reward = calculateReward();
+            int reward = calculateReward();
         
-        //4. Update Q-Table
+            //TODO 4. Update Q-Table 
+            var qValue = QTable[hasFlag ? 1 : 0][enemies.Count > 0 ? 1 : 0][teammates.Count > 0 ? 1 : 0][ownFlagInSight ? 1 : 0][explosiveBarrels.Count > 0 ? 1 : 0][(int)stance][actionPoints][action];
+        
+            if (qValue < 100000 && qValue > -100000)
+            {
+                QTable[hasFlag ? 1 : 0][enemies.Count > 0 ? 1 : 0][teammates.Count > 0 ? 1 : 0][ownFlagInSight ? 1 : 0]
+                    [explosiveBarrels.Count > 0 ? 1 : 0][(int)stance][actionPoints][action] = qValue; 
+            }
+            
+            actions.Remove(action);
+            getAction(actions); 
+        }
+        
         //5. save Q-Table
+        SaveQTable("../../../Model/QTable.json");
+    }
+    
+    private void performAction(int action)
+    {
+        switch (action)
+        {
+            case 0: // exploreEnemies
+                Body.ExploreEnemies1();
+                break;
+            case 1: // exploreTeam
+                Body.ExploreTeam();
+                break;
+            case 2: // exploreExplosiveBarrels
+                Body.ExploreExplosiveBarrels1();
+                break;
+            case 3: // exploreFlags
+                Body.ExploreFlags2();
+                break;
+            case 4: // shootEnemy
+                var enemies = Body.ExploreEnemies1();
+                if (enemies.Count > 0)
+                {
+                    Body.Tag5(enemies.First().Position);
+                }
+                break;
+            case 5: // shootExplosiveBarrel
+                var explosiveBarrels = Body.ExploreExplosiveBarrels1();
+                if (explosiveBarrels.Count > 0)
+                {
+                    Body.Tag5(explosiveBarrels.First());
+                }
+                break;
+            case 6: // reload
+                Body.Reload3();
+                break;
+            case 7: // standUp
+                Body.ChangeStance2(Stance.Standing);
+                break;
+            case 8: // kneel
+                Body.ChangeStance2(Stance.Kneeling);
+                break;
+            case 9: // layDown
+                Body.ChangeStance2(Stance.Lying);
+                break;
+            case 10: // goUp
+                Body.GoTo(Position.CreatePosition(Body.Position.X , Body.Position.Y + 10)); 
+                break;
+            case 11: // goUpRight
+                Body.GoTo(Position.CreatePosition(Body.Position.X + 10, Body.Position.Y + 10)); 
+                break;
+            case 12: // goUpLeft
+                Body.GoTo(Position.CreatePosition(Body.Position.X - 10, Body.Position.Y + 10)); 
+                break;
+            case 13: // goDown
+                Body.GoTo(Position.CreatePosition(Body.Position.X, Body.Position.Y - 10)); 
+                break;
+            case 14: // goDownRight
+                Body.GoTo(Position.CreatePosition(Body.Position.X + 10, Body.Position.Y - 10)); 
+                break;
+            case 15: // goDownLeft
+                Body.GoTo(Position.CreatePosition(Body.Position.X - 10, Body.Position.Y - 10)); 
+                break;
+            case 16: // goLeft
+                Body.GoTo(Position.CreatePosition(Body.Position.X - 10, Body.Position.Y)); 
+                break;
+            case 17: // goRight
+                Body.GoTo(Position.CreatePosition(Body.Position.X + 10, Body.Position.Y)); 
+                break;
+        }
     }
     
     private int getAction(List<double> actions)
